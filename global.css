@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Poppins_400Regular', sans-serif;
+    color: #0D132B;
+    background-color: #FFFFFF;
+  }
+}
+
+@layer utilities {
+  /* Typography Classes matching Lingua Design System */
+  .text-h1 {
+    font-family: 'Poppins_700Bold', sans-serif;
+    font-size: 32px;
+    line-height: 38.4px;
+    font-weight: 700;
+  }
+
+  .text-h2 {
+    font-family: 'Poppins_600SemiBold', sans-serif;
+    font-size: 24px;
+    line-height: 31.2px;
+    font-weight: 600;
+  }
+
+  .text-h3 {
+    font-family: 'Poppins_600SemiBold', sans-serif;
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 600;
+  }
+
+  .text-h4 {
+    font-family: 'Poppins_500Medium', sans-serif;
+    font-size: 16px;
+    line-height: 22.4px;
+    font-weight: 500;
+  }
+
+  .text-body-large {
+    font-family: 'Poppins_400Regular', sans-serif;
+    font-size: 16px;
+    line-height: 25.6px;
+    font-weight: 400;
+  }
+
+  .text-body-medium {
+    font-family: 'Poppins_400Regular', sans-serif;
+    font-size: 14px;
+    line-height: 22.4px;
+    font-weight: 400;
+  }
+
+  .text-body-small {
+    font-family: 'Poppins_400Regular', sans-serif;
+    font-size: 13px;
+    line-height: 20.8px;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-family: 'Poppins_400Regular', sans-serif;
+    font-size: 11px;
+    line-height: 15.4px;
+    font-weight: 400;
+  }
+}
