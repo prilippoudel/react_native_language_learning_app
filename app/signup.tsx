@@ -8,23 +8,131 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSignUp, useSSO } from '@clerk/expo';
 import VerificationModal from '../components/VerificationModal';
 
 export default function SignUpScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { signUp } = useSignUp();
+  const { startSSOFlow } = useSSO();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUp = () => {
-    setIsModalVisible(true);
+  const handleSignUp = async () => {
+    setErrorMsg(null);
+    if (!email.trim() || !password.trim()) {
+      setErrorMsg('Please enter both email and password.');
+      return;
+    }
+
+    if (!signUp) {
+      setErrorMsg('Auth client is not initialized yet. Please try again.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await signUp.password({ emailAddress: email.trim(), password });
+      if (error) {
+        const errObj = error as any;
+        setErrorMsg(errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Sign up failed.');
+        setIsLoading(false);
+        return;
+      }
+
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        const errObj = sendError as any;
+        setErrorMsg(errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Failed to send verification code.');
+        setIsLoading(false);
+        return;
+      }
+
+      setIsModalVisible(true);
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'An error occurred during sign up.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (code: string): Promise<{ success: boolean; error?: string }> => {
+    if (!signUp) {
+      return { success: false, error: 'Auth client not initialized.' };
+    }
+
+    try {
+      const { error } = await signUp.verifications.verifyEmailCode({ code });
+      if (error) {
+        const errObj = error as any;
+        return {
+          success: false,
+          error: errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Invalid verification code.',
+        };
+      }
+
+      const { error: finalizeError } = await signUp.finalize();
+      if (finalizeError) {
+        const errObj = finalizeError as any;
+        return {
+          success: false,
+          error: errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Failed to complete session setup.',
+        };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Verification failed.' };
+    }
+  };
+
+  const handleResendCode = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!signUp) {
+      return { success: false, error: 'Auth client not initialized.' };
+    }
+
+    try {
+      const { error } = await signUp.verifications.sendEmailCode();
+      if (error) {
+        const errObj = error as any;
+        return {
+          success: false,
+          error: errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Failed to resend code.',
+        };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to resend code.' };
+    }
+  };
+
+  const handleSocialAuth = async (strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') => {
+    setErrorMsg(null);
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({ strategy });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace('/(tabs)');
+      }
+    } catch (err: any) {
+      const msg = err?.message || '';
+      if (msg.includes('ExpoCryptoAES') || msg.includes('native module')) {
+        setErrorMsg('Social OAuth sign-in requires a native Development Build (npx expo run:ios / run:android) when using native crypto on a physical device. Please use Email Sign Up in Expo Go.');
+      } else {
+        setErrorMsg(msg || `Social sign-in with ${strategy} failed.`);
+      }
+    }
   };
 
   return (
@@ -72,6 +180,15 @@ export default function SignUpScreen() {
               resizeMode="contain"
             />
           </View>
+
+          {/* Error Message Box */}
+          {errorMsg ? (
+            <View className="mb-4 p-3.5 bg-red-50 rounded-2xl border border-red-200">
+              <Text className="font-poppins text-xs text-red-600 font-medium">
+                {errorMsg}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Form Fields */}
           <View className="gap-3.5 mb-5">
@@ -127,10 +244,15 @@ export default function SignUpScreen() {
           <Pressable
             className="bg-primary-purple h-14 rounded-[18px] flex-row items-center justify-center shadow-lg active:opacity-90 active:scale-98 mb-6"
             onPress={handleSignUp}
+            disabled={isLoading}
           >
-            <Text className="font-poppins-semibold text-lg text-white">
-              Sign Up
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text className="font-poppins-semibold text-lg text-white">
+                Sign Up
+              </Text>
+            )}
           </Pressable>
 
           {/* Divider */}
@@ -147,7 +269,7 @@ export default function SignUpScreen() {
             {/* Google */}
             <Pressable
               className="h-[52px] border border-neutral-border rounded-2xl flex-row items-center justify-center bg-white active:bg-neutral-surface"
-              onPress={handleSignUp}
+              onPress={() => handleSocialAuth('oauth_google')}
             >
               <Ionicons name="logo-google" size={20} color="#EA4335" style={{ marginRight: 10 }} />
               <Text className="font-poppins-medium text-base text-neutral-text-primary">
@@ -158,7 +280,7 @@ export default function SignUpScreen() {
             {/* Facebook */}
             <Pressable
               className="h-[52px] border border-neutral-border rounded-2xl flex-row items-center justify-center bg-white active:bg-neutral-surface"
-              onPress={handleSignUp}
+              onPress={() => handleSocialAuth('oauth_facebook')}
             >
               <Ionicons name="logo-facebook" size={20} color="#1877F2" style={{ marginRight: 10 }} />
               <Text className="font-poppins-medium text-base text-neutral-text-primary">
@@ -169,7 +291,7 @@ export default function SignUpScreen() {
             {/* Apple */}
             <Pressable
               className="h-[52px] border border-neutral-border rounded-2xl flex-row items-center justify-center bg-white active:bg-neutral-surface"
-              onPress={handleSignUp}
+              onPress={() => handleSocialAuth('oauth_apple')}
             >
               <Ionicons name="logo-apple" size={22} color="#0D132B" style={{ marginRight: 10 }} />
               <Text className="font-poppins-medium text-base text-neutral-text-primary">
@@ -177,6 +299,9 @@ export default function SignUpScreen() {
               </Text>
             </Pressable>
           </View>
+
+          {/* Captcha Mount Point (Required by Clerk bot protection) */}
+          <View nativeID="clerk-captcha" />
 
           {/* Bottom Account Switch Footer */}
           <View className="mt-auto py-3 items-center justify-center flex-row">
@@ -196,8 +321,10 @@ export default function SignUpScreen() {
       <VerificationModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onSuccess={() => router.replace('/')}
+        onSuccess={() => router.replace('/(tabs)')}
         email={email}
+        onVerify={handleVerifyCode}
+        onResend={handleResendCode}
       />
     </View>
   );
