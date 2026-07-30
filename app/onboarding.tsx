@@ -16,7 +16,7 @@ export default function OnboardingScreen() {
   const { height: windowHeight } = useWindowDimensions();
 
   const handleGetStarted = () => {
-    router.replace('/');
+    router.push('/signup');
   };
 
   const isSmallScreen = windowHeight < 700;
