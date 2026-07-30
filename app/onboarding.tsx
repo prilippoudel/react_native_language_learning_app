@@ -198,23 +198,23 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   illustrationContainer: {
-    width: 370,
-    height: 370,
+    width: 330,
+    height: 330,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   illustrationContainerSmall: {
-    width: 300,
-    height: 300,
+    width: 280,
+    height: 280,
   },
   mascotImage: {
-    width: 310,
-    height: 310,
+    width: 260,
+    height: 260,
   },
   mascotImageSmall: {
-    width: 250,
-    height: 250,
+    width: 220,
+    height: 220,
   },
 
   // Base Bubble styling
@@ -233,8 +233,8 @@ const styles = StyleSheet.create({
 
   // Bubble 1: Hello!
   bubbleHello: {
-    top: 25,
-    left: 12,
+    top: 20,
+    left: 10,
     backgroundColor: '#EDF5FF',
   },
   bubbleHelloSmall: {
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
 
   // Bubble 2: ¡Hola!
   bubbleHola: {
-    top: 8,
-    right: 22,
+    top: 5,
+    right: 18,
     backgroundColor: '#F3E8FF',
   },
   bubbleHolaSmall: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
 
   // Bubble 3: 你好!
   bubbleNiHao: {
-    top: 155,
+    top: 135,
     right: 5,
     backgroundColor: '#FFF0ED',
   },
