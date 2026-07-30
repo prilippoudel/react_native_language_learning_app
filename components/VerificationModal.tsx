@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 interface VerificationModalProps {
@@ -48,8 +47,6 @@ export default function VerificationModal({
         onClose();
         if (onSuccess) {
           onSuccess();
-        } else {
-          router.replace('/');
         }
       }, 300);
     }

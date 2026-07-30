@@ -24,11 +24,6 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync().catch(() => {
-  /* ignore splash screen preventAutoHide error in web/reloads */
-});
-
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     Poppins_400Regular,
@@ -40,6 +35,13 @@ export default function RootLayout() {
     'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
   });
+
+  // Prevent auto hiding splash screen safely when layout mounts
+  useEffect(() => {
+    SplashScreen.preventAutoHideAsync().catch(() => {
+      /* ignore splash screen preventAutoHide error in web/reloads */
+    });
+  }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
