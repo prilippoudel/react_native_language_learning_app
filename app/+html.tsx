@@ -32,6 +32,11 @@ const responsiveBackground = `
 body {
   background-color: #fff;
 }
+img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #000;

@@ -20,10 +20,12 @@ export default function OnboardingScreen() {
   };
 
   const isSmallScreen = windowHeight < 700;
+  const mascotContainerSize = isSmallScreen ? 280 : 330;
+  const mascotImageSize = isSmallScreen ? 220 : 260;
 
   return (
     <View
-      className="flex-1 bg-white"
+      className="flex-1 bg-white w-full max-w-[480px] self-center"
       style={{ paddingTop: Math.max(insets.top, 16) }}
     >
       <ScrollView
@@ -39,6 +41,7 @@ export default function OnboardingScreen() {
               <Image
                 source={require('../assets/images/moscot-logo.png')}
                 className="w-[38px] h-[38px]"
+                style={{ width: 38, height: 38 }}
                 resizeMode="contain"
               />
               <Text className="font-poppins-bold text-[26px] text-neutral-text-primary ml-2 -tracking-[0.5px]">
@@ -75,12 +78,14 @@ export default function OnboardingScreen() {
               className={`items-center justify-center relative ${
                 isSmallScreen ? 'w-[280px] h-[280px]' : 'w-[330px] h-[330px]'
               }`}
+              style={{ width: mascotContainerSize, height: mascotContainerSize }}
             >
               <Image
                 source={require('../assets/images/mascot-welcome.png')}
                 className={
                   isSmallScreen ? 'w-[220px] h-[220px]' : 'w-[260px] h-[260px]'
                 }
+                style={{ width: mascotImageSize, height: mascotImageSize }}
                 resizeMode="contain"
               />
 
