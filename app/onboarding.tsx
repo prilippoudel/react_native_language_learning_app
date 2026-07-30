@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Image,
   Pressable,
   ScrollView,
@@ -23,83 +22,108 @@ export default function OnboardingScreen() {
   const isSmallScreen = windowHeight < 700;
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
+    <View
+      className="flex-1 bg-white"
+      style={{ paddingTop: Math.max(insets.top, 16) }}
+    >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        <View style={styles.contentWrapper}>
+        <View className="flex-1 justify-between">
           {/* Top Section: Header & Text */}
-          <View style={styles.topSection}>
-            <View style={styles.header}>
+          <View className="w-full">
+            <View className="flex-row items-center justify-center mt-3.5 mb-12">
               <Image
                 source={require('../assets/images/moscot-logo.png')}
-                style={styles.logoImage}
+                className="w-[38px] h-[38px]"
                 resizeMode="contain"
               />
-              <Text style={styles.appName}>muolingo</Text>
+              <Text className="font-poppins-bold text-[26px] text-neutral-text-primary ml-2 -tracking-[0.5px]">
+                muolingo
+              </Text>
             </View>
 
-            <View style={styles.textContainer}>
-              <Text style={[styles.title, isSmallScreen && styles.titleSmall]}>
+            <View className="px-7 mt-4">
+              <Text
+                className={`font-poppins-bold text-neutral-text-primary -tracking-[0.5px] ${
+                  isSmallScreen
+                    ? 'text-[28px] leading-[36px]'
+                    : 'text-[34px] leading-[42px]'
+                }`}
+              >
                 Your AI language{'\n'}
-                <Text style={styles.titleHighlight}>teacher.</Text>
+                <Text className="text-primary-purple">teacher.</Text>
               </Text>
-              <Text style={[styles.subtitle, isSmallScreen && styles.subtitleSmall]}>
+              <Text
+                className={`font-poppins text-slate-500 ${
+                  isSmallScreen
+                    ? 'text-sm leading-[22px] mt-2'
+                    : 'text-base leading-[26px] mt-3'
+                }`}
+              >
                 Real conversations, personalized{'\n'}lessons, anytime, anywhere.
               </Text>
             </View>
           </View>
 
           {/* Middle Section: Mascot & Speech Bubbles */}
-          <View style={styles.middleSection}>
+          <View className="flex-1 items-center justify-center my-4">
             <View
-              style={[
-                styles.illustrationContainer,
-                isSmallScreen && styles.illustrationContainerSmall,
-              ]}
+              className={`items-center justify-center relative ${
+                isSmallScreen ? 'w-[280px] h-[280px]' : 'w-[330px] h-[330px]'
+              }`}
             >
               <Image
                 source={require('../assets/images/mascot-welcome.png')}
-                style={[
-                  styles.mascotImage,
-                  isSmallScreen && styles.mascotImageSmall,
-                ]}
+                className={
+                  isSmallScreen ? 'w-[220px] h-[220px]' : 'w-[260px] h-[260px]'
+                }
                 resizeMode="contain"
               />
 
+              {/* Speech Bubble 1: Hello! */}
               <View
-                style={[
-                  styles.bubble,
-                  styles.bubbleHello,
-                  isSmallScreen && styles.bubbleHelloSmall,
-                ]}
+                className={`absolute bg-[#EDF5FF] rounded-2xl z-10 shadow-sm ${
+                  isSmallScreen
+                    ? 'top-2.5 left-1 px-3 py-2'
+                    : 'top-5 left-2.5 px-4 py-2.5'
+                }`}
               >
-                <Text style={styles.bubbleHelloText}>Hello!</Text>
-                <View style={styles.bubbleHelloTail} />
+                <Text className="font-poppins-semibold text-base text-neutral-text-primary">
+                  Hello!
+                </Text>
+                <View className="absolute -bottom-[5px] right-[18px] w-[10px] h-[10px] bg-[#EDF5FF] rotate-45" />
               </View>
 
+              {/* Speech Bubble 2: ¡Hola! */}
               <View
-                style={[
-                  styles.bubble,
-                  styles.bubbleHola,
-                  isSmallScreen && styles.bubbleHolaSmall,
-                ]}
+                className={`absolute bg-[#F3E8FF] rounded-2xl z-10 shadow-sm ${
+                  isSmallScreen
+                    ? 'top-0 right-2.5 px-3 py-2'
+                    : 'top-[5px] right-[18px] px-4 py-2.5'
+                }`}
               >
-                <Text style={styles.bubbleHolaText}>¡Hola!</Text>
-                <View style={styles.bubbleHolaTail} />
+                <Text className="font-poppins-semibold text-base text-primary-purple">
+                  ¡Hola!
+                </Text>
+                <View className="absolute -bottom-[5px] left-[18px] w-[10px] h-[10px] bg-[#F3E8FF] rotate-45" />
               </View>
 
+              {/* Speech Bubble 3: 你好! */}
               <View
-                style={[
-                  styles.bubble,
-                  styles.bubbleNiHao,
-                  isSmallScreen && styles.bubbleNiHaoSmall,
-                ]}
+                className={`absolute bg-[#FFF0ED] rounded-2xl z-10 shadow-sm ${
+                  isSmallScreen
+                    ? 'top-[110px] right-0 px-3 py-2'
+                    : 'top-[135px] right-[5px] px-4 py-2.5'
+                }`}
               >
-                <Text style={styles.bubbleNiHaoText}>你好!</Text>
-                <View style={styles.bubbleNiHaoTail} />
+                <Text className="font-poppins-semibold text-base text-semantic-error">
+                  你好!
+                </Text>
+                <View className="absolute -left-[5px] top-[14px] w-[10px] h-[10px] bg-[#FFF0ED] rotate-45" />
               </View>
             </View>
           </View>
@@ -108,245 +132,21 @@ export default function OnboardingScreen() {
 
       {/* Fixed Bottom CTA Button */}
       <View
-        style={[
-          styles.bottomContainer,
-          { paddingBottom: Math.max(insets.bottom + 32, 54) },
-        ]}
+        className="px-6 pt-3 bg-white"
+        style={{ paddingBottom: Math.max(insets.bottom + 32, 54) }}
       >
         <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
+          className="bg-primary-purple h-14 rounded-[18px] flex-row items-center justify-center relative shadow-lg active:opacity-90 active:scale-98"
           onPress={handleGetStarted}
         >
-          <Text style={styles.buttonText}>Get Started</Text>
-          <Text style={styles.buttonIcon}>›</Text>
+          <Text className="font-poppins-semibold text-lg text-white">
+            Get Started
+          </Text>
+          <Text className="absolute right-[22px] text-white text-[28px] font-poppins-semibold leading-[30px]">
+            ›
+          </Text>
         </Pressable>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  contentWrapper: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  topSection: {
-    width: '100%',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 14,
-    marginBottom: 48,
-  },
-  logoImage: {
-    width: 38,
-    height: 38,
-  },
-  appName: {
-    fontFamily: 'Poppins_700Bold',
-    fontSize: 26,
-    color: '#0D132B',
-    marginLeft: 8,
-    letterSpacing: -0.5,
-  },
-  textContainer: {
-    paddingHorizontal: 28,
-    marginTop: 16,
-  },
-  title: {
-    fontFamily: 'Poppins_700Bold',
-    fontSize: 34,
-    lineHeight: 42,
-    color: '#0D132B',
-    letterSpacing: -0.5,
-  },
-  titleSmall: {
-    fontSize: 28,
-    lineHeight: 36,
-  },
-  titleHighlight: {
-    color: '#6C4EF5',
-  },
-  subtitle: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 16,
-    lineHeight: 26,
-    color: '#64748B',
-    marginTop: 12,
-  },
-  subtitleSmall: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginTop: 8,
-  },
-  middleSection: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 16,
-  },
-  illustrationContainer: {
-    width: 330,
-    height: 330,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  illustrationContainerSmall: {
-    width: 280,
-    height: 280,
-  },
-  mascotImage: {
-    width: 260,
-    height: 260,
-  },
-  mascotImageSmall: {
-    width: 220,
-    height: 220,
-  },
-
-  // Base Bubble styling
-  bubble: {
-    position: 'absolute',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    zIndex: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-
-  // Bubble 1: Hello!
-  bubbleHello: {
-    top: 20,
-    left: 10,
-    backgroundColor: '#EDF5FF',
-  },
-  bubbleHelloSmall: {
-    top: 10,
-    left: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  bubbleHelloText: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 16,
-    color: '#0D132B',
-  },
-  bubbleHelloTail: {
-    position: 'absolute',
-    bottom: -5,
-    right: 18,
-    width: 10,
-    height: 10,
-    backgroundColor: '#EDF5FF',
-    transform: [{ rotate: '45deg' }],
-  },
-
-  // Bubble 2: ¡Hola!
-  bubbleHola: {
-    top: 5,
-    right: 18,
-    backgroundColor: '#F3E8FF',
-  },
-  bubbleHolaSmall: {
-    top: 0,
-    right: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  bubbleHolaText: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 16,
-    color: '#6C4EF5',
-  },
-  bubbleHolaTail: {
-    position: 'absolute',
-    bottom: -5,
-    left: 18,
-    width: 10,
-    height: 10,
-    backgroundColor: '#F3E8FF',
-    transform: [{ rotate: '45deg' }],
-  },
-
-  // Bubble 3: 你好!
-  bubbleNiHao: {
-    top: 135,
-    right: 5,
-    backgroundColor: '#FFF0ED',
-  },
-  bubbleNiHaoSmall: {
-    top: 110,
-    right: 0,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  bubbleNiHaoText: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 16,
-    color: '#EF4444',
-  },
-  bubbleNiHaoTail: {
-    position: 'absolute',
-    left: -5,
-    top: 14,
-    width: 10,
-    height: 10,
-    backgroundColor: '#FFF0ED',
-    transform: [{ rotate: '45deg' }],
-  },
-
-  // Bottom CTA Button
-  bottomContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  button: {
-    backgroundColor: '#6C4EF5',
-    height: 56,
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: '#6C4EF5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  buttonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
-  },
-  buttonText: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 18,
-    color: '#FFFFFF',
-  },
-  buttonIcon: {
-    position: 'absolute',
-    right: 22,
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontFamily: 'Poppins_600SemiBold',
-    lineHeight: 30,
-  },
-});
