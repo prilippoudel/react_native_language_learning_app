@@ -141,14 +141,11 @@ export default function OnboardingScreen() {
         style={{ paddingBottom: Math.max(insets.bottom + 32, 54) }}
       >
         <Pressable
-          className="bg-primary-purple h-14 rounded-[18px] flex-row items-center justify-center relative shadow-lg active:opacity-90 active:scale-98"
+          className="bg-primary-purple h-14 rounded-[18px] flex-row items-center justify-center shadow-lg active:opacity-90 active:scale-98"
           onPress={handleGetStarted}
         >
           <Text className="font-poppins-semibold text-lg text-white">
             Get Started
-          </Text>
-          <Text className="absolute right-[22px] text-white text-[28px] font-poppins-semibold leading-[30px]">
-            ›
           </Text>
         </Pressable>
       </View>
