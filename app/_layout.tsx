@@ -6,14 +6,22 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { ClerkProvider, useAuth } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 
 import { useColorScheme } from '@/components/useColorScheme';
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey) {
+  throw new Error('Add your Clerk Publishable Key to the .env file');
+}
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -23,9 +31,6 @@ export {
 export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -39,6 +44,13 @@ export default function RootLayout() {
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
   });
 
+  // Prevent auto hiding splash screen safely when layout mounts
+  useEffect(() => {
+    SplashScreen.preventAutoHideAsync().catch(() => {
+      /* ignore splash screen preventAutoHide error in web/reloads */
+    });
+  }, []);
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
@@ -46,7 +58,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        /* ignore splash screen hide error */
+      });
     }
   }, [loaded]);
 
@@ -57,18 +71,47 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+function AuthProtection() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const inAuthGroup =
+      segments[0] === 'signin' ||
+      segments[0] === 'signup' ||
+      segments[0] === 'onboarding';
+
+    if (!isSignedIn && !inAuthGroup) {
+      router.replace('/onboarding');
+    } else if (isSignedIn && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isLoaded, isSignedIn, segments]);
+
+  return null;
+}
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <SafeAreaProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AuthProtection />
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="language-selection" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen name="signin" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </ClerkProvider>
   );
 }
