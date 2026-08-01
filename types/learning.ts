@@ -85,6 +85,9 @@ export interface Lesson {
   phrases: PhraseItem[];
   activities: Activity[];
   aiTeacherPrompt?: AITeacherPrompt;
+  status?: 'completed' | 'in_progress' | 'not_started' | 'locked';
+  imageUrl?: string;
+  iconName?: string;
 }
 
 export interface Unit {
