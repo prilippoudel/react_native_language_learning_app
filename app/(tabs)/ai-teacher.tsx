@@ -260,7 +260,15 @@ export default function AITeacherScreen() {
       {currentLesson && (
         <View style={styles.contextBanner}>
           <View style={styles.contextHeaderRow}>
-            <Text style={styles.contextFlag}>{activeLanguage.flag}</Text>
+            {activeLanguage.flag?.startsWith('http') ? (
+              <Image
+                source={{ uri: activeLanguage.flag }}
+                style={styles.contextFlagImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.contextFlag}>{activeLanguage.flag || '🌐'}</Text>
+            )}
             <Text style={styles.contextTitle} numberOfLines={1}>
               {currentLesson.title}
             </Text>
@@ -663,6 +671,11 @@ const styles = StyleSheet.create({
   },
   contextFlag: {
     fontSize: 16,
+  },
+  contextFlagImage: {
+    width: 22,
+    height: 16,
+    borderRadius: 3,
   },
   contextTitle: {
     fontSize: 14,
