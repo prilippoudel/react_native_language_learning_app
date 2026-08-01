@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSignIn, useSSO } from '@clerk/expo';
+import { usePostHog } from 'posthog-react-native';
 import VerificationModal from '../components/VerificationModal';
 
 export default function SignInScreen() {
@@ -21,6 +22,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const { signIn } = useSignIn();
   const { startSSOFlow } = useSSO();
+  const posthog = usePostHog();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,6 +61,9 @@ export default function SignInScreen() {
           const errObj = finalizeError as any;
           setErrorMsg(errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Failed to complete session setup.');
         } else {
+          posthog?.capture?.('sign_in_completed', {
+            method: 'password',
+          });
           router.replace('/(tabs)');
         }
       } else {
@@ -78,6 +83,9 @@ export default function SignInScreen() {
       const { createdSessionId, setActive } = await startSSOFlow({ strategy });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        posthog?.capture?.('sso_sign_in_completed', {
+          provider: strategy.replace('oauth_', ''),
+        });
         router.replace('/(tabs)');
       }
     } catch (err: any) {

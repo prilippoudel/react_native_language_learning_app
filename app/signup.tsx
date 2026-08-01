@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSignUp, useSSO } from '@clerk/expo';
+import { usePostHog } from 'posthog-react-native';
 import VerificationModal from '../components/VerificationModal';
 
 export default function SignUpScreen() {
@@ -21,6 +22,7 @@ export default function SignUpScreen() {
   const router = useRouter();
   const { signUp } = useSignUp();
   const { startSSOFlow } = useSSO();
+  const posthog = usePostHog();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,6 +61,9 @@ export default function SignUpScreen() {
         return;
       }
 
+      posthog?.capture?.('sign_up_verification_started', {
+        method: 'email',
+      });
       setIsModalVisible(true);
     } catch (err: any) {
       setErrorMsg(err?.message || 'An error occurred during sign up.');
@@ -91,6 +96,9 @@ export default function SignUpScreen() {
         };
       }
 
+      posthog?.capture?.('sign_up_completed', {
+        method: 'email',
+      });
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Verification failed.' };
@@ -111,6 +119,7 @@ export default function SignUpScreen() {
           error: errObj.errors?.[0]?.longMessage || errObj.errors?.[0]?.message || errObj.message || 'Failed to resend code.',
         };
       }
+      posthog?.capture?.('verification_code_resent');
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Failed to resend code.' };
@@ -123,6 +132,9 @@ export default function SignUpScreen() {
       const { createdSessionId, setActive } = await startSSOFlow({ strategy });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
+        posthog?.capture?.('sso_sign_in_completed', {
+          provider: strategy.replace('oauth_', ''),
+        });
         router.replace('/(tabs)');
       }
     } catch (err: any) {

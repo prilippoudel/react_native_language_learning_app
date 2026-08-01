@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/expo';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { usePostHog } from 'posthog-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -31,6 +32,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useAuth();
+  const posthog = usePostHog();
 
   const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
   const clearSelectedLanguage = useLanguageStore((state) => state.clearSelectedLanguage);
@@ -52,6 +54,28 @@ export default function HomeScreen() {
   const units = getUnitsByLanguage(activeLanguage.id);
   const currentUnit = units.length > 0 ? units[0] : UNITS[0];
   const currentLesson = currentUnit?.lessons[0];
+
+  const handleContinueLearning = (entryPoint: 'continue_card' | 'view_all') => {
+    posthog?.capture?.('learning_continued', {
+      entry_point: entryPoint,
+      language_id: activeLanguage.id,
+      unit_number: currentUnit?.number || 3,
+    });
+    router.push('/learn');
+  };
+
+  const handleOpenActivity = (activity: 'ai_conversation' | 'vocabulary_practice') => {
+    posthog?.capture?.('learning_activity_opened', {
+      activity,
+      language_id: activeLanguage.id,
+    });
+    router.push(activity === 'ai_conversation' ? '/ai-teacher' : '/chat');
+  };
+
+  const handleSignOut = async () => {
+    posthog?.capture?.('sign_out_started');
+    await signOut();
+  };
 
   const handleClearStorage = async () => {
     try {
@@ -144,7 +168,7 @@ export default function HomeScreen() {
 
             <Pressable
               style={styles.continueButton}
-              onPress={() => router.push('/learn')}
+              onPress={() => handleContinueLearning('continue_card')}
             >
               <Text style={styles.continueButtonText}>Continue</Text>
             </Pressable>
@@ -161,7 +185,7 @@ export default function HomeScreen() {
         <View style={styles.planSection}>
           <View style={styles.planHeader}>
             <Text style={styles.sectionTitle}>Today's plan</Text>
-            <Pressable onPress={() => router.push('/learn')}>
+            <Pressable onPress={() => handleContinueLearning('view_all')}> 
               <Text style={styles.viewAllText}>View all</Text>
             </Pressable>
           </View>
@@ -183,7 +207,7 @@ export default function HomeScreen() {
           {/* Plan Item 2: AI Conversation */}
           <Pressable
             style={styles.planItem}
-            onPress={() => router.push('/ai-teacher')}
+            onPress={() => handleOpenActivity('ai_conversation')}
           >
             <View style={[styles.planIconBox, { backgroundColor: '#F3E8FF' }]}>
               <Feather name="headphones" size={20} color="#A855F7" />
@@ -198,7 +222,7 @@ export default function HomeScreen() {
           {/* Plan Item 3: New words */}
           <Pressable
             style={styles.planItem}
-            onPress={() => router.push('/chat')}
+            onPress={() => handleOpenActivity('vocabulary_practice')}
           >
             <View style={[styles.planIconBox, { backgroundColor: '#FEE2E2' }]}>
               <Feather name="layers" size={20} color="#EF4444" />
@@ -219,7 +243,7 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
           {user ? (
-            <Pressable style={styles.signOutButton} onPress={() => signOut()}>
+            <Pressable style={styles.signOutButton} onPress={handleSignOut}>
               <Text style={styles.signOutButtonText}>Sign Out</Text>
             </Pressable>
           ) : null}

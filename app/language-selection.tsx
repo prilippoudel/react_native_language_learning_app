@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { usePostHog } from 'posthog-react-native';
 import { LANGUAGES } from '@/data/languages';
 import { Language } from '@/types/learning';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -17,6 +18,7 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 export default function LanguageSelectionScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const posthog = usePostHog();
 
   const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
   const setSelectedLanguage = useLanguageStore((state) => state.setSelectedLanguage);
@@ -51,6 +53,10 @@ export default function LanguageSelectionScreen() {
     const matched = LANGUAGES.find((l) => l.id === selectedLanguageId);
     if (matched) {
       setSelectedLanguage(matched);
+      posthog?.capture?.('language_selected', {
+        language_id: matched.id,
+        language_code: matched.code,
+      });
     }
     // Navigate or complete selection (e.g. back to home or previous screen)
     if (router.canGoBack()) {

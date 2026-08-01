@@ -9,13 +9,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { usePostHog } from 'posthog-react-native';
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const posthog = usePostHog();
   const { height: windowHeight } = useWindowDimensions();
 
   const handleGetStarted = () => {
+    posthog?.capture?.('onboarding_started');
     router.push('/signup');
   };
 
