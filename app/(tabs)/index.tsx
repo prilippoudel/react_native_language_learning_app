@@ -23,6 +23,12 @@ export default function TabOneScreen() {
         </View>
       ) : null}
 
+      <Link href="/language-selection" asChild>
+        <Pressable style={styles.languageButton}>
+          <Text style={styles.buttonText}>Choose Language</Text>
+        </Pressable>
+      </Link>
+
       <Link href="/onboarding" asChild>
         <Pressable style={styles.onboardingButton}>
           <Text style={styles.buttonText}>Open Onboarding Screen</Text>
@@ -68,6 +74,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 14,
+  },
+  languageButton: {
+    backgroundColor: '#21C16B',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#21C16B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   onboardingButton: {
     backgroundColor: '#6C4EF5',
