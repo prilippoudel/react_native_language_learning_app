@@ -10,11 +10,14 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { Text, View } from 'react-native';
 import 'react-native-reanimated';
-import { ClerkProvider, useAuth } from '@clerk/expo';
+import { ClerkProvider, useAuth, useUser } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { PostHogErrorBoundary, PostHogProvider, usePostHog } from 'posthog-react-native';
+import { posthog } from '@/src/config/posthog';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -109,6 +112,60 @@ function AuthProtection() {
   return null;
 }
 
+function PostHogIdentity() {
+  const posthogClient = usePostHog();
+  const { isLoaded, user } = useUser();
+  const identifiedUserId = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!isLoaded || !posthogClient) return;
+
+    if (user) {
+      if (identifiedUserId.current === user.id) return;
+
+      posthogClient.identify?.(user.id, {
+        $set: {
+          ...(user.primaryEmailAddress?.emailAddress
+            ? { email: user.primaryEmailAddress.emailAddress }
+            : {}),
+          ...(user.firstName ? { first_name: user.firstName } : {}),
+          ...(user.lastName ? { last_name: user.lastName } : {}),
+        },
+      });
+      identifiedUserId.current = user.id;
+      return;
+    }
+
+    if (identifiedUserId.current !== null) {
+      posthogClient.reset?.();
+      identifiedUserId.current = null;
+    }
+  }, [isLoaded, posthogClient, user]);
+
+  return null;
+}
+
+function PostHogErrorFallback() {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <Text>Something went wrong.</Text>
+    </View>
+  );
+}
+
+function AppStack() {
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="language-selection" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="signup" options={{ headerShown: false }} />
+      <Stack.Screen name="signin" options={{ headerShown: false }} />
+      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
@@ -117,14 +174,16 @@ function RootLayoutNav() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <AuthProtection />
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="language-selection" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="signup" options={{ headerShown: false }} />
-            <Stack.Screen name="signin" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          </Stack>
+          {posthog ? (
+            <PostHogProvider client={posthog}>
+              <PostHogIdentity />
+              <PostHogErrorBoundary fallback={PostHogErrorFallback}>
+                <AppStack />
+              </PostHogErrorBoundary>
+            </PostHogProvider>
+          ) : (
+            <AppStack />
+          )}
         </ThemeProvider>
       </SafeAreaProvider>
     </ClerkProvider>
