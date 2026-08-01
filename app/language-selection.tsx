@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,25 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { LANGUAGES } from '@/data/languages';
 import { Language } from '@/types/learning';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 export default function LanguageSelectionScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
+  const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
+  const setSelectedLanguage = useLanguageStore((state) => state.setSelectedLanguage);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLanguageId, setSelectedLanguageId] = useState<string>('es');
+  const [selectedLanguageId, setSelectedLanguageId] = useState<string>(
+    selectedLanguage?.id || 'es'
+  );
+
+  useEffect(() => {
+    if (selectedLanguage) {
+      setSelectedLanguageId(selectedLanguage.id);
+    }
+  }, [selectedLanguage]);
 
   // Filter languages based on search query
   const filteredLanguages = LANGUAGES.filter((lang) => {
@@ -32,9 +44,14 @@ export default function LanguageSelectionScreen() {
 
   const handleSelectLanguage = (lang: Language) => {
     setSelectedLanguageId(lang.id);
+    setSelectedLanguage(lang);
   };
 
   const handleConfirm = () => {
+    const matched = LANGUAGES.find((l) => l.id === selectedLanguageId);
+    if (matched) {
+      setSelectedLanguage(matched);
+    }
     // Navigate or complete selection (e.g. back to home or previous screen)
     if (router.canGoBack()) {
       router.back();

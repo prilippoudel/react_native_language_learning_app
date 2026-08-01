@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -75,21 +76,32 @@ function AuthProtection() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
+  const hasHydrated = useLanguageStore((state) => state.hasHydrated);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !hasHydrated) return;
 
     const inAuthGroup =
       segments[0] === 'signin' ||
       segments[0] === 'signup' ||
       segments[0] === 'onboarding';
 
+    const inLanguageSelection = segments[0] === 'language-selection';
+
     if (!isSignedIn && !inAuthGroup) {
       router.replace('/onboarding');
-    } else if (isSignedIn && inAuthGroup) {
-      router.replace('/(tabs)');
+    } else if (isSignedIn) {
+      if (!selectedLanguage && !inLanguageSelection) {
+        router.replace('/language-selection');
+      } else if (selectedLanguage && (inAuthGroup || (inLanguageSelection && segments.length === 1))) {
+        // If coming from onboarding/signin/signup or initial load without prior stack, route to home tabs
+        if (inAuthGroup) {
+          router.replace('/(tabs)');
+        }
+      }
     }
-  }, [isLoaded, isSignedIn, segments]);
+  }, [isLoaded, isSignedIn, selectedLanguage, hasHydrated, segments]);
 
   return null;
 }

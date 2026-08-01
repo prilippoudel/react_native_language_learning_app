@@ -1,17 +1,41 @@
 import { StyleSheet, Pressable, Text } from 'react-native';
 import { View } from '@/components/Themed';
 import { H1 } from '@/components/ui/Typography';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 export default function TabOneScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const router = useRouter();
+
+  const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
+  const clearSelectedLanguage = useLanguageStore((state) => state.clearSelectedLanguage);
+
+  const handleClearStorage = async () => {
+    try {
+      await AsyncStorage.clear();
+      clearSelectedLanguage();
+      router.replace('/language-selection');
+    } catch (error) {
+      console.error('Error clearing async storage:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <H1 style={styles.title}>Home Screen</H1>
       
+      {selectedLanguage ? (
+        <View style={styles.selectedLangContainer}>
+          <Text style={styles.selectedLangText}>
+            Selected Language: {selectedLanguage.name} ({selectedLanguage.nativeName})
+          </Text>
+        </View>
+      ) : null}
+
       {user ? (
         <View style={styles.userInfoContainer}>
           <Text style={styles.welcomeText}>
@@ -34,6 +58,10 @@ export default function TabOneScreen() {
           <Text style={styles.buttonText}>Open Onboarding Screen</Text>
         </Pressable>
       </Link>
+
+      <Pressable style={styles.clearStorageButton} onPress={handleClearStorage}>
+        <Text style={styles.clearStorageButtonText}>Clear Storage (Test Language Gate)</Text>
+      </Pressable>
     </View>
   );
 }
@@ -92,6 +120,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
+    marginBottom: 16,
     shadowColor: '#6C4EF5',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -102,5 +131,32 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 16,
+  },
+  selectedLangContainer: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#6C4EF5',
+  },
+  selectedLangText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: '#6C4EF5',
+  },
+  clearStorageButton: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  clearStorageButtonText: {
+    color: '#4B5563',
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
   },
 });
