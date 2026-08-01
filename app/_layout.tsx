@@ -65,12 +65,15 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return null;
   }
 
   return <RootLayoutNav />;
 }
+
+// Toggle this flag to true for bypassing Clerk auth during local UI development
+const DEV_BYPASS_AUTH = false;
 
 function AuthProtection() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -78,6 +81,8 @@ function AuthProtection() {
   const router = useRouter();
   const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
   const hasHydrated = useLanguageStore((state) => state.hasHydrated);
+
+  const effectiveIsSignedIn = isSignedIn || DEV_BYPASS_AUTH;
 
   useEffect(() => {
     if (!isLoaded || !hasHydrated) return;
@@ -89,19 +94,17 @@ function AuthProtection() {
 
     const inLanguageSelection = segments[0] === 'language-selection';
 
-    if (!isSignedIn && !inAuthGroup) {
+    if (!effectiveIsSignedIn && !inAuthGroup) {
       router.replace('/onboarding');
-    } else if (isSignedIn) {
+    } else if (effectiveIsSignedIn) {
       if (!selectedLanguage && !inLanguageSelection) {
         router.replace('/language-selection');
-      } else if (selectedLanguage && (inAuthGroup || (inLanguageSelection && segments.length === 1))) {
-        // If coming from onboarding/signin/signup or initial load without prior stack, route to home tabs
-        if (inAuthGroup) {
-          router.replace('/(tabs)');
-        }
+      } else if (selectedLanguage && inAuthGroup) {
+        // If coming from auth screen with active session or dev bypass, route to home tabs
+        router.replace('/(tabs)');
       }
     }
-  }, [isLoaded, isSignedIn, selectedLanguage, hasHydrated, segments]);
+  }, [isLoaded, effectiveIsSignedIn, selectedLanguage, hasHydrated, segments]);
 
   return null;
 }
