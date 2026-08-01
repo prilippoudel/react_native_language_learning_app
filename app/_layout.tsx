@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -64,32 +65,46 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return null;
   }
 
   return <RootLayoutNav />;
 }
 
+// Toggle this flag to true for bypassing Clerk auth during local UI development
+const DEV_BYPASS_AUTH = false;
+
 function AuthProtection() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const selectedLanguage = useLanguageStore((state) => state.selectedLanguage);
+  const hasHydrated = useLanguageStore((state) => state.hasHydrated);
+
+  const effectiveIsSignedIn = isSignedIn || DEV_BYPASS_AUTH;
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !hasHydrated) return;
 
     const inAuthGroup =
       segments[0] === 'signin' ||
       segments[0] === 'signup' ||
       segments[0] === 'onboarding';
 
-    if (!isSignedIn && !inAuthGroup) {
+    const inLanguageSelection = segments[0] === 'language-selection';
+
+    if (!effectiveIsSignedIn && !inAuthGroup) {
       router.replace('/onboarding');
-    } else if (isSignedIn && inAuthGroup) {
-      router.replace('/(tabs)');
+    } else if (effectiveIsSignedIn) {
+      if (!selectedLanguage && !inLanguageSelection) {
+        router.replace('/language-selection');
+      } else if (selectedLanguage && inAuthGroup) {
+        // If coming from auth screen with active session or dev bypass, route to home tabs
+        router.replace('/(tabs)');
+      }
     }
-  }, [isLoaded, isSignedIn, segments]);
+  }, [isLoaded, effectiveIsSignedIn, selectedLanguage, hasHydrated, segments]);
 
   return null;
 }
